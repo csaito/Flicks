@@ -10,18 +10,20 @@ import UIKit
 import AFNetworking
 import CircularSpinner
 
-class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
+class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     var movieSummaryList = [MovieSummary]()
-    @IBOutlet weak var movieTableView: UITableView!
-    let CellIdentifier = "MovieItemTableViewCell"
+    var filteredSummaryList = [MovieSummary]()
     var refreshControl: UIRefreshControl!
+    @IBOutlet weak var movieTableView: UITableView!
+    @IBOutlet weak var movieSearchBar: UISearchBar!
+    let CellIdentifier = "MovieItemTableViewCell"
 
     override func viewDidLoad() {
         super.viewDidLoad()
         movieTableView.dataSource = self
         movieTableView.delegate = self
+        movieSearchBar.delegate = self
         movieTableView.estimatedRowHeight = 100
         initializeRefreshView()
         CircularSpinner.show(animated: true, type: CircularSpinnerType.indeterminate, showDismissButton: false, delegate: nil)
@@ -47,15 +49,15 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier, for: indexPath as IndexPath) as! MovieItemTableViewCell
         
-        cell.titleLabel?.text = String("\(movieSummaryList[indexPath.row].title!)")
-        cell.descriptionTextView.text = String("\(movieSummaryList[indexPath.row].description!)")
+        cell.titleLabel?.text = String("\(filteredSummaryList[indexPath.row].title!)")
+        cell.descriptionTextView.text = String("\(filteredSummaryList[indexPath.row].description!)")
 
-        if let posterPath: String = movieSummaryList[indexPath.row].posterImagePath {
+        if let posterPath: String = filteredSummaryList[indexPath.row].posterImagePath {
             let posterBaseUrl = "http://image.tmdb.org/t/p/w92"
             let posterUrl = URL(string: posterBaseUrl + posterPath)
             cell.posterImageView.setImageWith(posterUrl!)
         }
-        else if let backdropPath: String = movieSummaryList[indexPath.row].backdropPath {
+        else if let backdropPath: String = filteredSummaryList[indexPath.row].backdropPath {
             let backdropBaseUrl = "http://image.tmdb.org/t/p/w780"
             let backdropUrl = URL(string: backdropBaseUrl + backdropPath)
             cell.posterImageView.setImageWith(backdropUrl!)
@@ -63,20 +65,18 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             cell.posterImageView.image = nil
         }
         
-        //cell.posterImageView.setImageWith(URL(string: "http://image.tmdb.org/t/p/w92/z6BP8yLwck8mN9dtdYKkZ4XGa3D.jpg")!)
-        
         return cell
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movieSummaryList.count
+        return filteredSummaryList.count
     }
     
     override func prepare(for segue: UIStoryboardSegue,
                  sender: Any?){
         let vc = segue.destination as! MovieDetailsViewController
         let selectedIndex = movieTableView.indexPath(for: sender as! UITableViewCell)!
-        let movieSummary = movieSummaryList[selectedIndex.row]
+        let movieSummary = filteredSummaryList[selectedIndex.row]
         vc.movieSummary = movieSummary
         if let posterPath: String = movieSummary.posterImagePath {
             let posterBaseUrl = "http://image.tmdb.org/t/p/w500"
@@ -92,6 +92,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
  
     func successCallback(_ list: [MovieSummary]) {
         self.movieSummaryList = list
+        self.filteredSummaryList = list
         self.movieTableView.reloadData()
         self.refreshControl.endRefreshing()
         CircularSpinner.hide()
@@ -118,6 +119,46 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         present(alertController, animated: true) {
             // optional code for what happens after the alert controller has finished presenting
         }
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        NSLog("searchText \(searchText)")
+        if searchText.isEmpty {
+            self.filteredSummaryList = movieSummaryList
+        } else {
+            var filteredData = [MovieSummary]()
+            for movieSummary in self.movieSummaryList {
+                if let title = movieSummary.title {
+                    let isRange = (title.range(of: searchText, options: .caseInsensitive) != nil)
+                    if (isRange) {
+                        filteredData.append(movieSummary)
+                    }
+                }
+            }
+            self.filteredSummaryList = filteredData
+        }
+        movieTableView.reloadData()
+    }
+    
+    // This method updates filteredData based on the text in the Search Box
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        NSLog("searchText \(searchText)")
+        // When there is no text, filteredData is the same as the original data
+        if searchText.isEmpty {
+            self.filteredSummaryList = movieSummaryList
+        } else {
+            var filteredData = [MovieSummary]()
+            for movieSummary in self.movieSummaryList {
+                if let title = movieSummary.title {
+                    let isRange = (title.range(of: searchText, options: .caseInsensitive) != nil)
+                    if (isRange) {
+                        filteredData.append(movieSummary)
+                    }
+                }
+            }
+            self.filteredSummaryList = filteredData
+        }
+        movieTableView.reloadData()
     }
     
 }
