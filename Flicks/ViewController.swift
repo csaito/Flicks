@@ -15,6 +15,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     var movieSummaryList = [MovieSummary]()
     var filteredSummaryList = [MovieSummary]()
     var refreshControl: UIRefreshControl!
+    var pageNumber = 1
+    var isDataLoading = false
     @IBOutlet weak var movieTableView: UITableView!
     @IBOutlet weak var movieSearchBar: UISearchBar!
     let CellIdentifier = "MovieItemTableViewCell"
@@ -27,7 +29,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         movieTableView.estimatedRowHeight = 100
         initializeRefreshView()
         CircularSpinner.show(animated: true, type: CircularSpinnerType.indeterminate, showDismissButton: false, delegate: nil)
-        MovieDataLoader.fetchNowPlayingData(successCallback: self.successCallback, errorCallback: self.failureCallback)
+        self.isDataLoading = true
+        MovieDataLoader.fetchNowPlayingData(pageNum: self.pageNumber, successCallback: self.successCallback, errorCallback: self.failureCallback)
     }
 
 
@@ -43,7 +46,8 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     
     func refreshControlAction(_ refreshControl: UIRefreshControl) {
-        MovieDataLoader.fetchNowPlayingData(successCallback: self.successCallback, errorCallback: self.failureCallback)
+        self.pageNumber = 1;
+        MovieDataLoader.fetchNowPlayingData(pageNum: self.pageNumber, successCallback: self.successCallback, errorCallback: self.failureCallback)
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -63,6 +67,10 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             cell.posterImageView.setImageWith(backdropUrl!)
         } else {
             cell.posterImageView.image = nil
+        }
+        
+        if (indexPath.row == self.movieSummaryList.count-1) {
+            self.loadMoreData()
         }
         
         return cell
@@ -91,11 +99,20 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
  
     func successCallback(_ list: [MovieSummary]) {
-        self.movieSummaryList = list
-        self.filteredSummaryList = list
+        if (!list.isEmpty) {
+            let firstMovie = list[0]
+            if (self.movieExists(item: firstMovie)) {
+                self.movieSummaryList = list
+                self.filteredSummaryList = list
+            } else {
+                self.movieSummaryList += list
+                self.filteredSummaryList += list
+            }
+        }
         self.movieTableView.reloadData()
         self.refreshControl.endRefreshing()
         CircularSpinner.hide()
+        self.isDataLoading = false
 
     }
     
@@ -104,7 +121,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         self.refreshControl.endRefreshing()
         CircularSpinner.hide()
         self.displayAlert()
-        
+        self.isDataLoading = false
+    }
+    
+    func movieExists(item: MovieSummary) -> Bool {
+        // Inefficient, but reliable, way to get paging working quickly
+        for movieSummary in movieSummaryList {
+            if (movieSummary.id == item.id) {
+                return true
+            }
+        }
+        return false
     }
     
     func displayAlert() {
@@ -122,7 +149,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        NSLog("searchText \(searchText)")
         if searchText.isEmpty {
             self.filteredSummaryList = movieSummaryList
         } else {
@@ -142,7 +168,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     
     // This method updates filteredData based on the text in the Search Box
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        NSLog("searchText \(searchText)")
         // When there is no text, filteredData is the same as the original data
         if searchText.isEmpty {
             self.filteredSummaryList = movieSummaryList
@@ -159,6 +184,14 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             self.filteredSummaryList = filteredData
         }
         movieTableView.reloadData()
+    }
+    
+    func loadMoreData() {
+        if (!self.isDataLoading) {
+            self.isDataLoading = true
+            self.pageNumber += 1
+            MovieDataLoader.fetchNowPlayingData(pageNum: self.pageNumber, successCallback: self.successCallback, errorCallback: self.failureCallback)
+        }
     }
     
 }

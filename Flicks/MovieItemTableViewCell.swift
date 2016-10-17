@@ -23,19 +23,6 @@ class MovieItemTableViewCell: UITableViewCell {
 
         // Configure the view for the selected state
     }
-    
-    func isTruncated(labelToCheck: UILabel) -> Bool {
-        // Call self.layoutIfNeeded() if your view is uses auto layout
-        let label:UILabel = UILabel(frame: CGRect(x: 0, y: 0, width: labelToCheck.bounds.width, height: CGFloat.greatestFiniteMagnitude))
-        label.numberOfLines = 0
-        label.lineBreakMode = NSLineBreakMode.byWordWrapping
-        label.font = labelToCheck.font
-        label.text = labelToCheck.text
-        label.sizeToFit()
-        if label.frame.height > labelToCheck.frame.height {
-            return true
-        }
-        return false
-    }
+
 
 }

@@ -2,9 +2,6 @@
 //  MovieDataLoader.swift
 //  Flicks
 //
-//  Created by Chihiro Saito on 10/16/16.
-//  Copyright © 2016 Chihiro Saito. All rights reserved.
-//
 
 import Foundation
 
@@ -12,8 +9,8 @@ class MovieDataLoader {
     
     static let apiKey = "a07e22bc18f5cb106bfe4cc1f83ad8ed"
     
-    class func fetchNowPlayingData(successCallback: @escaping ([MovieSummary]) -> Void, errorCallback: ((NSError?) -> Void)?) {
-        let url = URL(string:"https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)")
+    class func fetchNowPlayingData(pageNum: Int, successCallback: @escaping ([MovieSummary]) -> Void, errorCallback: ((NSError?) -> Void)?) {
+        let url = URL(string:"https://api.themoviedb.org/3/movie/now_playing?api_key=\(apiKey)&page=\(pageNum)")
         let request = URLRequest(url: url!)
         let session = URLSession(
             configuration: URLSessionConfiguration.default,
@@ -27,7 +24,7 @@ class MovieDataLoader {
             }
             if let data = dataOrNil {
                 if let responseDictionary = try! JSONSerialization.jsonObject(with: data, options:[]) as? NSDictionary {
-                    NSLog("response: \(responseDictionary)")
+                    //NSLog("response: \(responseDictionary)")
                     createMovieSummaryList(responseDictionary: responseDictionary, successCallback: successCallback)
                 } else {
                     errorCallback?(nil)
