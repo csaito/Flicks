@@ -16,15 +16,15 @@ The following **optional** features are implemented:
 
 - [ ] Add a tab bar for **Now Playing** and **Top Rated** movies.
 - [ ] Implement segmented control to switch between list view and grid view.
-- [ ] Add a search bar.
+- [x] Add a search bar.
 - [ ] All images fade in.
-- [ ] For the large poster, load the low-res image first, switch to high-res when complete.
+- [x] For the large poster, load the low-res image first, switch to high-res when complete.
 - [ ] Customize the highlight and selection effect of the cell.
 - [ ] Customize the navigation bar.
 
 The following **additional** features are implemented:
 
-- [ ] List anything else that you can get done to improve the app functionality!
+- [x] Added infinite scrolling.
 
 ## Video Walkthrough
 
@@ -36,7 +36,7 @@ GIF created with [LiceCap](http://www.cockos.com/licecap/).
 
 ## Notes
 
-This is a baseline commit - all required features are in, but none of the fun optionals.  The biggest challenge for this was really finding time and knowing where to find the right resource.  Most of the coding was done in the airports and in flight, with spotty network connection, and I frequently didn't have the right resource downloaded for the off-line use.  Hoping to do better from next time as I don't have any other international travel scheduled during the course.
+Definitely didn't have enough time this week.  Hoping to do better next week.
 
 ## License
 
